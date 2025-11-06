@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal Jellyfin Client</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #000; color: #fff; paddi>
+    .item { margin-bottom: 10px; }
+    a { color: #1e90ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+        <h1 class="text-2xl font-bold mb-4 text-center">Jellyfin Client</h1>
+
+        <!-- Libraries List -->
+        <div id="libraries">
+            <h2 class="text-xl font-semibold mb-2">Libraries</h2>
+            <ul id="library-list" class="space-y-2"></ul>
+        </div>
+
+        <!-- Items List -->
+        <div id="items" class="hidden">
+            <h2 class="text-xl font-semibold mb-2">Items</h2>
+            <button onclick="backToLibraries()" 
+                    class="mb-2 bg-gray-300 text-black p-2 rounded hover:bg-gray-400">
+                Back to Libraries
+            </button>
+            <ul id="item-list" class="space-y-2"></ul>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error" class="hidden text-red-500 mt-2"></div>
+    </div>
+
+    <script>
+        window.onload = loadLibraries;
+
+        async function loadLibraries() {
+            const libraryList = document.getElementById('library-list');
+            libraryList.innerHTML = '';
+            
+            try {
+                const response = await fetch('/libraries');
+                const data = await response.json();
+                
+                if (data.status === 'error') {
+                    document.getElementById('error').textContent = data.message;
+                    document.getElementById('error').classList.remove('hidden');
+                    return;
+                }
+
+                data.Items.forEach(library => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<button onclick="loadItems('${library.Id}')" 
+                                   class="w-full text-left p-2 hover:bg-gray-200 rounded">
+                                   ${library.Name}</button>`;
+                    libraryList.appendChild(li);
+                });
+            } catch (error) {
+                document.getElementById('error').textContent = 'Failed to load libraries';
+                document.getElementById('error').classList.remove('hidden');
+            }
+        }
+
+        async function loadItems(libraryId) {
+            const itemList = document.getElementById('item-list');
+            itemList.innerHTML = '';
+            document.getElementById('libraries').classList.add('hidden');
+            document.getElementById('items').classList.remove('hidden');
+            
+            try {
+                const response = await fetch(`/library/${libraryId}`);
+                const data = await response.json();
+                
+                if (data.status === 'error') {
+                    document.getElementById('error').textContent = data.message;
+                    document.getElementById('error').classList.remove('hidden');
+                    return;
+                }
+
+                data.Items.forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = item.Name;
+                    li.className = 'p-2 hover:bg-gray-200 rounded';
+                    itemList.appendChild(li);
+                });
+            } catch (error) {
+                document.getElementById('error').textContent = 'Failed to load items';
+                document.getElementById('error').classList.remove('hidden');
+            }
+        }
+
+        function backToLibraries() {
+            document.getElementById('items').classList.add('hidden');
+            document.getElementById('libraries').classList.remove('hidden');
+            document.getElementById('error').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

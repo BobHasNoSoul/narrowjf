@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% if search_query %}Search: {{ search_query }}{% else %}Library{% endif %}</title>
+    <style>
+        body {font-family: Arial, sans-serif; background:#141414; color:#fff; margin:0; padding:20px;}
+        .container {max-width:960px; margin:auto;}
+        h2 {margin-bottom:15px;}
+        .search {margin-bottom:20px;}
+        .search input {padding:8px; width:280px; border-radius:4px; border:none;}
+        .search button {padding:8px 12px; background:#e50914; color:#fff; border:none; border-radius:4px; cursor:pointer;}
+        .list {display:flex; flex-direction:column; gap:12px;}
+        .item {background:#1f1f1f; padding:12px; border-radius:6px; display:flex; align-items:center;}
+        .item:hover {background:#2a2a2a;}
+        .item img {width:80px; height:120px; object-fit:cover; border-radius:4px; margin-right:15px; background:#000; display:none;}
+        .item a {color:#fff; text-decoration:none; display:flex; flex:1; align-items:center;}
+        .item .title {font-weight:bold;}
+        .item .info {font-size:0.9em; color:#aaa; margin-top:4px;}
+        .pagination {margin-top:30px; text-align:center;}
+        .pagination a, .pagination span {margin:0 6px; color:#e50914; text-decoration:none;}
+        .pagination a.disabled {color:#666; pointer-events:none;}
+        .back {display:inline-block; margin-bottom:15px; color:#e50914;}
+    </style>
+</head>
+<body>
+<div class="container">
+
+    {% if parent_id %}
+        <a href="{{ url_for('libraries') }}" class="back">Back to Libraries</a>
+    {% endif %}
+
+    <h2>
+        {% if search_query %}
+            Search: "{{ search_query }}"
+        {% else %}
+            Library
+        {% endif %}
+    </h2>
+
+    <!-- Search bar -->
+    <div class="search">
+        <form method="get" action="{{ url_for('search') }}">
+            <input type="text" name="query" placeholder="Search..." value="{{ search_query or '' }}" />
+            <button type="submit">Search</button>
+        </form>
+    </div>
+
+    <!-- Items list -->
+    <div class="list">
+        {% for item in items %}
+            {% set img = url_for('static', filename='placeholder.png') %}
+            {% if item.ImageTags and item.ImageTags.Primary %}
+                {% set img = JELLYFIN_SERVER ~ '/Items/' ~ item.Id ~ '/Images/Primary?tag=' ~ item.ImageTags.Primary ~ '&maxHeight=180' %}
+            {% endif %}
+
+            <div class="item">
+                <a href="
+                    {%- if item.Type in ['Series', 'Season'] -%}
+                        {{ url_for('items', parent_id=item.Id, library_type=library_type, page=0) }}
+                    {%- else -%}
+                        {{ url_for('play', item_id=item.Id, item_type=item.Type) }}
+                    {%- endif -%}
+                ">
+                    <img src="{{ img }}" alt="{{ item.Name }}" />
+                    <div>
+                        <div class="title">{{ item.Name }}</div>
+                        <div class="info">
+                            {% if item.Type == 'Movie' %}
+                                Movie{% if item.ProductionYear %} ({{ item.ProductionYear }}){% endif %}
+                            {% elif item.Type == 'Series' %}
+                                TV Series
+                            {% elif item.Type == 'Season' %}
+                                Season {{ item.IndexNumber }}
+                            {% elif item.Type == 'Episode' %}
+                                S{{ item.ParentIndexNumber }}E{{ item.IndexNumber }}
+                                {% if item.PremiereDate %} • {{ item.PremiereDate[:10] }}{% endif %}
+                            {% elif item.Type == 'Audio' %}
+                                Audio • {{ item.Artists|join(', ') if item.Artists else 'Unknown' }}
+                            {% else %}
+                                {{ item.Type }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+            </div>
+        {% else %}
+            <p>No items found.</p>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination">
+        {% if has_prev %}
+            <a href="?page={{ page - 1 }}&page_size={{ page_size }}
+                {% if search_query %}&query={{ search_query }}{% endif %}
+                {% if library_type %}&library_type={{ library_type }}{% endif %}">Previous</a>
+        {% else %}
+            <span class="disabled">Previous</span>
+        {% endif %}
+
+        <span>Page {{ page + 1 }}</span>
+
+        {% if has_next %}
+            <a href="?page={{ page + 1 }}&page_size={{ page_size }}
+                {% if search_query %}&query={{ search_query }}{% endif %}
+                {% if library_type %}&library_type={{ library_type }}{% endif %}">Next</a>
+        {% else %}
+            <span class="disabled">Next</span>
+        {% endif %}
+    </div>
+
+</div>
+</body>
+</html>

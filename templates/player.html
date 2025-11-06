@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Media Player</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #000; color: #fff; paddi>
+    .item { margin-bottom: 10px; }
+    a { color: #1e90ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Playing Media</h2>
+        {% if 'audio' in item_type.lower() %}
+        <audio id="player" controls style="width: 100%;"></audio>
+        {% else %}
+        <video id="player" controls width="600"></video>
+        {% endif %}
+        <br>
+        <a href="javascript:history.back()">Back</a>
+    </div>
+    <script>
+        const player = document.getElementById('player');
+        const directUrl = "{{ direct_url }}";
+        const transcodeUrl = "{{ transcode_url }}";
+        
+        player.src = directUrl;
+        player.play();
+
+        player.addEventListener('error', function() {
+            console.log('Direct play failed, switching to transcode');
+            player.src = transcodeUrl;
+            player.play();
+        });
+    </script>
+</body>
+</html>

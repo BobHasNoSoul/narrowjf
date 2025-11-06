@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Jellyfin Login</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #000; color: #fff; paddi>
+    .item { margin-bottom: 10px; }
+    a { color: #1e90ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Jellyfin Login</h2>
+        <form method="post">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+        {% if error %}
+        <p class="error">{{ error }}</p>
+        {% endif %}
+    </div>
+</body>
+</html>

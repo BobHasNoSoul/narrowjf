@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Jellyfin - Libraries</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #141414;
+      color: #fff;
+      margin: 0;
+      padding: 30px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 40px;
+      color: #e50914;
+    }
+    .library-list {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .library {
+      background: #1f1f1f;
+      padding: 18px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.2s;
+    }
+    .library:hover {
+      background: #2a2a2a;
+    }
+    .library a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 1.3em;
+      font-weight: bold;
+      flex: 1;
+    }
+    .library .type {
+      font-size: 0.9em;
+      color: #aaa;
+      text-transform: capitalize;
+      display: none;
+    }
+    .library .icon {
+      font-size: 1.5em;
+      margin-right: 12px;
+      display: none;
+    }
+    .logout {
+      display: block;
+      text-align: center;
+      margin-top: 40px;
+      color: #e50914;
+      text-decoration: none;
+    }
+    .logout:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Jellyfin Libraries</h1>
+
+    <div class="library-list">
+      {% for lib in libraries %}
+        {% set ctype = lib.CollectionType|default('mixed') %}
+        {% set display_type = 
+             ctype|replace('movies', 'Movies')
+                  |replace('tvshows', 'TV Shows')
+                  |replace('livetv', 'Live TV')
+                  |replace('mixed', 'Folder')
+        %}
+        {% set icon = 
+             'Movies' if ctype == 'movies' else
+             'TV' if ctype == 'tvshows' else
+             'LIVE' if ctype == 'livetv' else
+             'Folder'
+        %}
+
+        <div class="library">
+          <a href="{{ url_for('items', parent_id=lib.Id, library_type=ctype) }}">
+            <span class="icon">
+              {% if icon == 'Movies' %}Movie
+              {% elif icon == 'TV' %}TV
+              {% elif icon == 'LIVE' %}LIVE
+              {% else %}Folder{% endif %}
+            </span>
+            {{ lib.Name }}
+          </a>
+          <span class="type">{{ display_type }}</span>
+        </div>
+      {% else %}
+        <p style="text-align:center; color:#aaa;">No libraries found.</p>
+      {% endfor %}
+    </div>
+
+    <a href="{{ url_for('login') }}" class="logout">Logout</a>
+  </div>
+</body>
+</html>
